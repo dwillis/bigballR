@@ -1,13 +1,14 @@
 Package: bigballR
 Type: Package
-Title: NCAA Basketball Data Analysis Functionality
-Version: 0.1.0
-Author: Jake Flancer
-Maintainer: Jake Flancer <jflancer@wharton.upenn.edu>
-Description: This package gives users the ability to work with NCAA Basketball data in a clean and detailed manner.
+Title: NCAA Women's Basketball Data Analysis Functionality
+Version: 0.2.0
+Author: Jake Flancer (original), Derek Willis (WBB adaptation)
+Maintainer: Derek Willis <dwillis@gmail.com>
+Description: This package gives users the ability to work with NCAA Women's Basketball data in a clean and detailed manner.
     The functions included can retrieve and manipulate NCAA play-by-play data, giving users a variety of ways to find insights
     about their favorite players and teams. An especially important feature is the ability to report who is on the court
-    at each event in the play-by-play, opening up many possible areas of analysis.
+    at each event in the play-by-play, opening up many possible areas of analysis. Adapted from the original bigballR package
+    for men's basketball to support women's basketball data.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 3.1.2)
@@ -21,5 +22,10 @@ Imports:
     igraph,
     ggraph,
     gtools,
-    rvest
+    rvest,
+    jsonlite,
+    glue
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 RoxygenNote: 7.1.1

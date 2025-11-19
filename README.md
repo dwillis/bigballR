@@ -1,10 +1,35 @@
-# bigballR
+# bigballR - Women's Basketball Edition
 
-###NOTE THIS DOCUMENTATION IS SLIGHTLY OUTDATED FOLLOWING THE LATEST PACKAGE UPDATE 1/13
+###NOTE: This package has been adapted for NCAA Women's Basketball
 
-`bigballR` is an R package for working with NCAA Basketball data. This 
-package primarily revolves around the use of schedule, roster, and play-by-play data via stats.ncaa.com, and
+`bigballR` is an R package for working with NCAA Women's Basketball data. This
+package primarily revolves around the use of schedule, roster, and play-by-play data via stats.ncaa.org, and
 additionally has features to calculate lineups, on/off results, and player game and multi-game statistics.
+
+Originally created by Jake Flancer for men's basketball, this version has been adapted for women's basketball
+by Derek Willis with updated season IDs, team databases, and player ID scraping functionality.
+
+## Important Notes for Women's Basketball
+
+### Finding Team IDs
+
+To use this package, you'll need team IDs from stats.ncaa.org. Here's how to find them:
+
+1. Go to https://stats.ncaa.org
+2. Navigate to Women's Basketball → Division I → Select a season
+3. Find your team and click through to their page
+4. The URL will be: `https://stats.ncaa.org/teams/[TEAM_ID]`
+5. Use that TEAM_ID in functions like `get_team_schedule(team.id = TEAM_ID)`
+
+### Season IDs
+
+The package includes season IDs for women's basketball from 2010-11 through 2024-25. If you need to update or verify season IDs, see `WBB_ADAPTATION_NOTES.md` for instructions.
+
+### Player IDs
+
+The `get_team_roster()` function now extracts player IDs when available, which can be used to track players across seasons and access individual player statistics pages.
+
+**For detailed information about the WBB adaptation, see `WBB_ADAPTATION_NOTES.md`**
 
 ## Installation
 
@@ -36,21 +61,28 @@ Manually, game ids can be found in the url when browsing games, for example:
 - `get_player_lineups` acts as an easy way to filter lineup data, specifying players to exclude/include from the lineups.
 
 **Datasets**
-- `teamids` dataset includes stats.ncaa team name, team conference, season, and team id for 17-18 and 18-19 seasons
+- `teamids` dataset includes stats.ncaa team name, NCAA ID, and team id for WBB teams
+- Team data sourced from the WBB teams database at https://github.com/dwillis/wbb
 
 ### Use
 
 There are many different progressions and ways to use this package. As an example, here are some natural steps you could take.
 ``` r
-# Get team schedule
-# Note: if you don't know the proper team.name (case sensitive), you can look it up in data("teamids")
-schedule <- get_team_schedule(season = "2018-19", team.name = "Duke")
-# Get play by play for all games played so far in season
+# Get team schedule (use a WBB team ID from stats.ncaa.org)
+# For example, South Carolina's 2024-25 team ID
+schedule <- get_team_schedule(team.id = 560922)
+
+# Or get games by date and conference
+games <- get_date_games(date = "11/15/2024", conference = "SEC")
+
+# Get play by play for games
 play_by_play <- get_play_by_play(schedule$Game_ID)
+
 # Generate all lineups and stats from the play by play
 lineups <- get_lineups(play_by_play_data = play_by_play, keep.dirty = T, garbage.filter = F)
-# Look at Zion Williamson's on/off statistics with lineups that include Reddish and Barrett
-zion_comparison <- on_off_generator("ZION.WILLIAMSON", lineups, Included = c("CAM.REDDISH","RJ.BARRETT"))
+
+# Get roster with player IDs
+roster <- get_team_roster(team.id = 560922)
 ```
 
 ### `scrape_game` / `get_play_by_play`

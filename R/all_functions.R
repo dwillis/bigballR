@@ -1108,52 +1108,56 @@ get_date_games <-
 
     # Find the season id needed by the url given the date of the game
     # The pbp only goes back to 2011 in most cases, so no need to pull deeper
+    # NOTE: These are WOMEN'S BASKETBALL season IDs (Division I)
+    # To find season IDs: Go to stats.ncaa.org, select Women's Basketball Division I,
+    # select a season, and look at the URL for the season_divisions/[ID] parameter
+    # For example: https://stats.ncaa.org/season_divisions/18402/scoreboards shows 18402 for WBB 24-25
     seasonid <- dplyr::case_when(
-      # 24-25
+      # 24-25 WBB
       dateform > as.Date("2024-05-01") &
-        dateform <= as.Date("2025-05-01") ~ 18403,
-      # 23-24
+        dateform <= as.Date("2025-05-01") ~ 18402,
+      # 23-24 WBB
       dateform > as.Date("2023-05-01") &
-        dateform <= as.Date("2024-05-01") ~ 18221,
-      # 22-23
+        dateform <= as.Date("2024-05-01") ~ 18220,
+      # 22-23 WBB
       dateform > as.Date("2022-05-01") &
-        dateform <= as.Date("2023-05-01") ~ 17940,
-      # 21-22
+        dateform <= as.Date("2023-05-01") ~ 17941,
+      # 21-22 WBB
       dateform > as.Date("2021-05-01") &
-        dateform <= as.Date("2022-05-01") ~ 17783,
-      # 20-21
+        dateform <= as.Date("2022-05-01") ~ 17781,
+      # 20-21 WBB
       dateform > as.Date("2020-05-01") &
-        dateform <= as.Date("2021-05-01") ~ 17420,
-      # 19-20
+        dateform <= as.Date("2021-05-01") ~ 17421,
+      # 19-20 WBB
       dateform > as.Date("2019-05-01") &
-        dateform <= as.Date("2020-05-01") ~ 17060,
-      #18-19
+        dateform <= as.Date("2020-05-01") ~ 17061,
+      #18-19 WBB
       dateform > as.Date("2018-05-01") &
-        dateform <= as.Date("2019-05-01") ~ 16700,
-      #17-18
+        dateform <= as.Date("2019-05-01") ~ 16741,
+      #17-18 WBB
       dateform > as.Date("2017-05-01") &
-        dateform <= as.Date("2018-05-01") ~ 13533,
-      #16-17
+        dateform <= as.Date("2018-05-01") ~ 13560,
+      #16-17 WBB
       dateform > as.Date("2016-05-01") &
-        dateform <= as.Date("2017-05-01") ~ 13100,
-      #15-16
+        dateform <= as.Date("2017-05-01") ~ 13140,
+      #15-16 WBB
       dateform > as.Date("2015-05-01") &
-        dateform <= as.Date("2016-05-01") ~ 12700,
-      #14-15
+        dateform <= as.Date("2016-05-01") ~ 12741,
+      #14-15 WBB
       dateform > as.Date("2014-05-01") &
-        dateform <= as.Date("2015-05-01") ~ 12320,
-      #13-14
+        dateform <= as.Date("2015-05-01") ~ 12360,
+      #13-14 WBB
       dateform > as.Date("2013-05-01") &
-        dateform <= as.Date("2014-05-01") ~ 11700,
-      #12-13
+        dateform <= as.Date("2014-05-01") ~ 11741,
+      #12-13 WBB
       dateform > as.Date("2012-05-01") &
-        dateform <= as.Date("2013-05-01") ~ 10883,
-      #11-12
+        dateform <= as.Date("2013-05-01") ~ 10921,
+      #11-12 WBB
       dateform > as.Date("2011-05-01") &
-        dateform <= as.Date("2012-05-01") ~ 10480,
-      #10-11
+        dateform <= as.Date("2012-05-01") ~ 10520,
+      #10-11 WBB
       dateform > as.Date("2010-05-01") &
-        dateform <= as.Date("2011-05-01") ~ 10220,
+        dateform <= as.Date("2011-05-01") ~ 10260,
       T ~ 0
     )
     if (seasonid == 0) {
@@ -1572,6 +1576,7 @@ get_team_schedule <-
 #' \item{Pos} - Position (one of G,F,C) as designated by the NCAA
 #' \item{Ht} - Height as reported by the NCAA
 #' \item{Yr} - School year, as Fr, So, Jr, Sr
+#' \item{Player_ID} - NCAA stats player ID (if available from roster page)
 #' }
 #' @export
 #' @examples
@@ -1651,6 +1656,11 @@ get_team_roster <-
 
     table <- XML::readHTMLTable(html)[[1]][, 1:9] %>%
       mutate(across(everything(), as.character))
+
+    # Extract player IDs from the HTML links
+    # Player links typically follow pattern: /players/[player_id]
+    player_links <- stringr::str_extract_all(html, '(?<=href="/players/)\\d+')[[1]]
+
     # Return the more usable roster page
     player <- table$Name
     clean_name <- player
@@ -1665,6 +1675,17 @@ get_team_roster <-
       a = as.numeric(strsplit(x,"-")[[1]])
       12*a[1] + a[2]
     }))
+
+    # Add player IDs if available (match count to roster)
+    if(length(player_links) > 0 && length(player_links) == nrow(table)) {
+      table$Player_ID <- player_links
+    } else if(length(player_links) > 0) {
+      # If counts don't match, still try to add them but warn
+      table$Player_ID <- c(player_links, rep(NA, nrow(table) - length(player_links)))[1:nrow(table)]
+      message("Warning: Player ID count mismatch. Some IDs may be incorrect.")
+    } else {
+      table$Player_ID <- NA
+    }
 
     if (isUrlRead) {
       Sys.sleep(0.5)
